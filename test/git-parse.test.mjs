@@ -62,9 +62,25 @@ test('parseLog: \x1e/\x1f 分隔 + refs + parents', () => {
     .replaceAll('\x00', '\x1f')
   const l = parseLog(out)
   assert.equal(l.length, 2)
-  assert.deepEqual(l[0], { hash: 'hash1', short: 'h1', author: 'Alice', time: 1700000000, subject: 'feat: a', refs: 'main', parents: ['p1', 'p2'] })
+  assert.deepEqual(l[0], { hash: 'hash1', short: 'h1', author: 'Alice', time: 1700000000, subject: 'feat: a', refs: 'main', parents: ['p1', 'p2'], body: '' })
   assert.equal(l[1].refs, '')
   assert.deepEqual(l[1].parents, [])
+})
+
+test('parseLog: 真实 git 形态(记录间带换行,parents/hash 精确匹配,body 多行)', () => {
+  // git 在每条记录后附加换行 → 第 2 条起 hash 带前导换行,必须 trim 后与 %P 精确相等
+  const out = [
+    'h2\x00s2\x00A\x0017000000002\x00subj2\x00HEAD -> main\x00h1\x00body line1\nbody line2\x1e',
+    '\nh1\x00s1\x00B\x0017000000001\x00subj1\x00\x00\x00\x1e',
+  ].join('').replaceAll('\x00', '\x1f')
+  const l = parseLog(out)
+  assert.equal(l.length, 2)
+  assert.equal(l[0].hash, 'h2')
+  assert.deepEqual(l[0].parents, ['h1'])
+  assert.equal(l[0].body, 'body line1\nbody line2')
+  assert.equal(l[1].hash, 'h1')
+  assert.deepEqual(l[1].parents, [])
+  assert.equal(l[1].body, '')
 })
 
 // ── parseNumstat ──
