@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Git Panel",
+    "description": "Zed-style Git panel in the right sidebar: working-tree status, per-file staging, commit, and branch switching with auto refresh."
+  }
+}

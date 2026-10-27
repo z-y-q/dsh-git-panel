@@ -1,0 +1,6 @@
+# dsh-git-panel — bundle patch
+# 宿主侧把插件服务挂进 cordis 条目树;客户端面由 dsh.client 字段描述。
+# M0 spike 阶段先只挂宿主服务;若 typert 自挂验证失败,这里追加 HTTP 端点服务的挂载方式不变。
+- insert:
+  - id: git-panel
+    name: '@deepseek-ai/dsh-git-panel'
