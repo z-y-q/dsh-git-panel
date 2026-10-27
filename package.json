@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-ai/dsh-git-panel",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Zed-style Git panel for DeepSeek Harness web UI: working-tree status, staging, commit, branches, live refresh. Dual-face plugin (host Typert Remote + client sidebar tab), zero build.",
   "type": "module",
   "main": "lib/index.js",
