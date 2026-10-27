@@ -150,17 +150,30 @@ test('createGit:argv 与结果解析(假 exec)', async () => {
   assert.deepEqual(calls.at(-1), ['commit', '-m', 'feat: x'])
   const n = await git.numstat('/repo')
   assert.equal(n[0].added, 1)
-  await git.push('/repo', { force: true, confirm: true })
-  assert.deepEqual(calls.at(-1), ['push', '--force-with-lease'])
+  await git.push('/repo')
+  assert.deepEqual(calls.at(-1), ['push'])
+  await git.push('/repo', { setUpstream: true })
+  assert.deepEqual(calls.at(-1), ['push', '-u', 'origin', 'HEAD'])
 })
 
-test('createGit:危险操作必须 confirm,空 commit message 拒绝', async () => {
-  const git = createGit(async () => ({ code: 0, stdout: '', stderr: '' }))
+test('createGit:危险操作必须 confirm,空 commit message 拒绝,无强推通道', async () => {
+  const calls = []
+  const git = createGit(async ({ argv }) => {
+    calls.push(argv)
+    return { code: 0, stdout: '', stderr: '' }
+  })
   await assert.rejects(() => git.undoCommit('/r'), /confirm/)
   await assert.rejects(() => git.deleteBranch('/r', 'x'), /confirm/)
-  await assert.rejects(() => git.push('/r', { force: true }), /confirm/)
   await assert.rejects(() => git.commit('/r', '   '), /不能为空/)
   await assert.rejects(() => git.stage('/r', []), /paths/)
+  // 强推保护:push 不存在任何 force 形态;setUpstream 走 -u origin HEAD
+  await git.push('/r')
+  await git.push('/r', { setUpstream: true })
+  await git.push('/r', { force: true, confirm: true }).catch(() => {})
+  const pushCalls = calls.filter(a => a[0] === 'push')
+  assert.deepEqual(pushCalls[0], ['push'])
+  assert.deepEqual(pushCalls[1], ['push', '-u', 'origin', 'HEAD'])
+  assert.ok(pushCalls.every(a => !a.some(v => String(v).includes('force'))), 'push 永不携带 force')
 })
 
 test('createGit:失败命令抛出含 stderr 的错误', async () => {
