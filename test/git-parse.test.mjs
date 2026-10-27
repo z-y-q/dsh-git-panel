@@ -57,13 +57,14 @@ test('parseStatusV2: detached HEAD 与空输出', () => {
 
 // ── parseLog ──
 
-test('parseLog: \x1e/\x1f 分隔 + refs', () => {
-  const out = 'hash1\x00h1\x00Alice\x001700000000\x00feat: a\x00main\x00\x1ehash2\x00h2\x00Bob\x001700000001\x00fix: b\x00\x1e'
+test('parseLog: \x1e/\x1f 分隔 + refs + parents', () => {
+  const out = 'hash1\x00h1\x00Alice\x001700000000\x00feat: a\x00main\x00p1 p2\x00\x1ehash2\x00h2\x00Bob\x001700000001\x00fix: b\x00\x00\x1e'
     .replaceAll('\x00', '\x1f')
   const l = parseLog(out)
   assert.equal(l.length, 2)
-  assert.deepEqual(l[0], { hash: 'hash1', short: 'h1', author: 'Alice', time: 1700000000, subject: 'feat: a', refs: 'main' })
+  assert.deepEqual(l[0], { hash: 'hash1', short: 'h1', author: 'Alice', time: 1700000000, subject: 'feat: a', refs: 'main', parents: ['p1', 'p2'] })
   assert.equal(l[1].refs, '')
+  assert.deepEqual(l[1].parents, [])
 })
 
 // ── parseNumstat ──

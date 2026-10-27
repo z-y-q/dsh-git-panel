@@ -207,3 +207,6 @@ remote.$stream({ open: (after, signal) =>
 3. git 输出解析 → 只依赖 porcelain v2 与固定分隔符,解析函数 100% 单测。
 4. 大仓库性能 → status/diff 有 maxBytes 截断 + 防抖;不够再 lazy。
 5. 与内置 `dsh-workspace-changes` 完全独立,不依赖其内部接口。
+
+### v0.1.1(修复)
+- exec.js 补 git 前缀(spawn rev-parse ENOENT 修复)
