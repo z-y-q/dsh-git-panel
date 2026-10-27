@@ -1,3 +1,7 @@
+> ⚠️ **历史文档**:本文是 M0 时期的规划与设计(M1 之前),部分机制已被实现过程中的
+> 真实结论取代(如 Typert 通道、版本化部署、渲染矩阵测试等)。
+> **当前架构与机制请以 [ARCHITECTURE.md](ARCHITECTURE.md) 为准**;变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+
 # dsh-git-panel 设计方案
 
 > 在 DSH Web UI 里做一个 Zed Git Panel 式的仓库管理面板。
