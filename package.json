@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-ai/dsh-git-panel",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Zed-style Git panel for DeepSeek Harness web UI: working-tree status, staging, commit, branches, live refresh. Dual-face plugin (host Typert Remote + client sidebar tab), zero build.",
   "type": "module",
   "main": "lib/index.js",
@@ -49,6 +49,7 @@
   "dependencies": {
     "@deepseek-ai/cordis": "~4.0.5",
     "@deepseek-ai/dsh-typert-protocol": "0.2.1-rc.3",
-    "react": "^19.3.1"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }
