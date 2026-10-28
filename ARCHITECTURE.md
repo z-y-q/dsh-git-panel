@@ -23,7 +23,7 @@ flowchart LR
     end
 
     subgraph Host["宿主半边 lib/index.js"]
-        SVC["GitPanelService\nextends TypertRemoteService\n30 个 @Remote 方法"]
+        SVC["GitPanelService\nextends TypertRemoteService\n34 个 @Remote 方法"]
         EXEC["createExec\nresolveExecutable → sandbox.confine\n→ spawn → readFrom().text"]
     end
 
@@ -61,7 +61,7 @@ connection.rpc.call('/api', 'gitPanel/status',
 // 响应包: { ok: true, value } / { ok: false, error: { code, message, details } }
 ```
 
-### 2.1 Remote 方法清单(30 个)
+### 2.1 Remote 方法清单(34 个)
 
 | 分组 | 方法(参数 → wire) |
 |---|---|
@@ -71,7 +71,7 @@ connection.rpc.call('/api', 'gitPanel/status',
 | 提交 | `commit(agent, message)`;`commitTracked(agent, message)`(=-a);`undoCommit(agent, confirm)`;`amend 暂缺` |
 | 历史 | `history(agent, limit, path)`(path=单文件历史);`showCommit(agent, hash)`;`commitFileDiff(agent, hash, path)`;`stashDiff(agent, ref)` |
 | 分支 | `checkout(agent, name)`;`createBranch(agent, name, startPoint)`;`deleteBranch(agent, name, confirm)`;`tag(agent, name)` |
-| 远端 | `fetch(agent)`;`pull(agent, rebase)`;`push(agent)`(无上游自动 -u);`pushForce(agent, confirm)`(**仅 --force-with-lease**) |
+| 远端 | `fetch(agent)`;`pull(agent, rebase, remote)`;`push(agent, remote)`(无上游自动 -u);`pushForce(agent, confirm)`(**仅 --force-with-lease**);`remotes(agent)` |
 | 贮藏 | `stashSave(agent, mode)`(all/tracked/staged);`stashList(agent)`;`stashApply(agent, ref)`;`stashPop(agent, ref)`;`stashDrop(agent, ref, confirm)` |
 | 修复 | `discard(agent, paths, confirm)`;`resolveConflict(agent, path, side)`(ours/theirs) |
 | AI | `aiMessage(agent, signal)`(signal 必须是最后参数 → 网关注入取消) |
@@ -190,7 +190,7 @@ find . -maxdepth 5 -name .git -print
 ```
 
 - **发现**:`find` 下探 5 层找 `.git`(目录或 worktree 文件),剪枝 node_modules/dist/build/vendor/.venv/venv/target 重目录;命中 `.git` 的目录(含 `a/b/仓库` 多层形式)作为 chip 展示。
-- **选择**:`selectRepo(agent, root)` 校验(拒绝绝对路径与 `..`,且必须是仓库)后写入内存表;`cwd()` 对所有方法统一应用 override —— 单点收口,30 个方法零改动获得多仓库能力。
+- **选择**:`selectRepo(agent, root)` 校验(拒绝绝对路径与 `..`,且必须是仓库)后写入内存表;`cwd()` 对所有方法统一应用 override —— 单点收口,34 个方法零改动获得多仓库能力。
 - **清除**:点击基准仓库 chip(root='')即恢复。
 - 五种布局场景(仓库内+兄弟、非仓库+子仓库、已选子仓库、单仓库、非仓库无子仓库)均有渲染断言。
 
@@ -236,6 +236,7 @@ flowchart LR
 | 图布局 | 无头装配取 `__graphLayout` | 线性/分叉/合并/过滤子集 |
 | 组件 | react-dom/server **渲染矩阵**(真正执行函数体) | __testables 全组件 × 真实数据 |
 | 边界 | SafePanel.getDerivedStateFromError | 崩溃→错误卡 |
+| 生命周期 | jsdom + createRoot + act(test/panel.integration.test.mjs) | 真实执行 effect/点击/异步,覆盖「单测绿但面板上坏」盲区 |
 
 > `__testables` / `__graphLayout` 是模块返回对象上的测试接缝:**测试直测出货代码**,零副本零漂移。
 
