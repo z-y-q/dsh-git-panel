@@ -1,7 +1,7 @@
 # @deepseek-ai/dsh-git-panel
 
 Zed 风格的 Git 面板,DeepSeek Harness 右栏页签。双端插件、零构建、纯 JS。
-**当前版本 v0.5.1** · 变更记录见 [CHANGELOG.md](CHANGELOG.md) · 架构与机制见 [ARCHITECTURE.md](ARCHITECTURE.md)
+**当前版本 v0.6.2** · 变更记录见 [CHANGELOG.md](CHANGELOG.md) · 架构与机制见 [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ## 功能
 
@@ -15,10 +15,13 @@ Zed 风格的 Git 面板,DeepSeek Harness 右栏页签。双端插件、零构�
   - **Git Graph 泳道图**:彩色泳道、贝塞尔分叉/合并、HEAD 圆环、tag/分支徽章、作者头像
   - 提交搜索(n/m 计数)、点选节点下钻:变更文件列表 + 单文件 diff + 提交正文
   - 加载更多(步进 100)
-- **分支**:切换、新建(创建即切换)、删除(两击确认,当前分支不可删)、HEAD 建标签
+- **分支与多仓库**:切换、新建(创建即切换)、删除(两击确认,当前分支不可删)、HEAD 建标签;
+  **子仓库发现**(下探 5 层,剪枝 node_modules 等重目录)—— 工作区非仓库时出选择器,
+  工作区内嵌多个仓库时出切换 chips,选中的仓库对所有功能生效
 - **远端**:Fetch / Pull / **Pull --rebase** / Push(无上游自动 `-u`)/ 强推(仅 `--force-with-lease` + 两击)
 - **贮藏**:全部(-u)/ 仅已跟踪 / 仅已暂存;列表应用 / 弹出 / 删除(两击);内容 diff 视图
-- **底部**:上次提交 + ↩ 撤销(两击,soft reset)
+- **底部**:上次提交 + ↩ 撤销(两击,soft reset);贮藏入口/溢出菜单
+- **页签记忆**:重挂载/右栏开合/页面刷新后回到停留的页签
 - **工程质量**:轮询页面隐藏暂停 + 错误指数退避;status 每次 5 次 git spawn;diff 缓存按统计签名
   失效;SafePanel 错误边界(崩溃→可重试错误卡);泳道数上限;中英文案跟随界面语言
 
@@ -31,7 +34,7 @@ flowchart LR
         RPC["connection.rpc.call('/api')"]
     end
     subgraph Host["宿主进程"]
-        SVC["GitPanelService\n30 个 @Remote 方法(SRC 模式)"]
+        SVC["GitPanelService\n32 个 @Remote 方法(SRC 模式)"]
         EXE["exec 缝合 → git CLI"]
         LLM["ctx.llm"]
     end

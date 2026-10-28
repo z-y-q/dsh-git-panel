@@ -65,6 +65,7 @@ connection.rpc.call('/api', 'gitPanel/status',
 
 | 分组 | 方法(参数 → wire) |
 |---|---|
+| 仓库 | `discoverSubRepos(agent)`(内部);`selectRepo(agent, root)`(会话级子仓库选择) |
 | 查询 | `status(agent)`;`diff(agent, path, staged)`;`diffUntracked(agent, path)`;`diffAll(agent)` |
 | 暂存 | `stage(agent, paths)`;`unstage(agent, paths)`;`stageAll(agent)`;`unstageAll(agent)` |
 | 提交 | `commit(agent, message)`;`commitTracked(agent, message)`(=-a);`undoCommit(agent, confirm)`;`amend 暂缺` |
@@ -74,6 +75,8 @@ connection.rpc.call('/api', 'gitPanel/status',
 | 贮藏 | `stashSave(agent, mode)`(all/tracked/staged);`stashList(agent)`;`stashApply(agent, ref)`;`stashPop(agent, ref)`;`stashDrop(agent, ref, confirm)` |
 | 修复 | `discard(agent, paths, confirm)`;`resolveConflict(agent, path, side)`(ours/theirs) |
 | AI | `aiMessage(agent, signal)`(signal 必须是最后参数 → 网关注入取消) |
+
+> 共 **32** 个方法;`confirm` 参数的方法(undoCommit/deleteBranch/pushForce/stashDrop/discard)必须显式传入,否则宿主拒绝。
 
 ## 3. 客户端结构(lib/client.js,自包含单文件)
 
@@ -88,7 +91,8 @@ flowchart TD
         CACHE["diff 缓存\n按路径统计签名失效"]
         TABS["变更页签\n三分组+折叠+丢弃+冲突解决"]
         HIST["历史页签\n泳道图+搜索+下钻+加载更多"]
-        FOOT["底部\n上次提交↩ / Fetch/Pull/Push/📥/⋯"]
+        FOOT["底部\n上次提交↩ / 同步/📥/⋯ 溢出菜单"]
+        CHIP["仓库 chips\n基准/子/兄弟仓库切换"]
     end
     SP --> GB
     GB --> POLL --> CACHE
@@ -137,7 +141,13 @@ sequenceDiagram
 - **diff 缓存签名** = `该路径 +n/−n 统计`;status 回来后逐 key 比对,变了就收起该行并丢弃过期 diff,**未变的行不闪断**。
 - status 宿主侧每次仅 5 次 git spawn(合并 rev-parse、合并 numstat)。
 
-### 3.3 泳道图算法(layoutGraph)
+### 3.3 页签持久化(反白屏的第二道闸)
+
+GitBody 因座位重挂载、右栏开合而重建时,页签状态从**模块级变量 `LAST_TAB`** 恢复;
+页面刷新则从 **sessionStorage**(`gitPanel.tab`)恢复。双写双读,覆盖全部重建路径。
+另有挂载/卸载诊断日志(控制台 `[git-panel] GitBody mounted/unmounted`),用于定位重挂载时机。
+
+### 3.3.1 泳道图算法(layoutGraph)
 
 - `lanes[i]` = 第 i 条泳道正在等待的提交哈希;逐条(新→旧)认领泳道,第一父延续,其余父分叉(合并线),根提交消耗殆尽的泳道压缩移除。
 - 行内渲染为 SVG:直线(同列)+ 三次贝塞尔(跨列);HEAD 圆环;泳道上限 `LANES_MAX=10`(防挤占文本列)。
@@ -146,6 +156,34 @@ sequenceDiagram
 ### 3.4 词级 diff
 
 相邻 `−行`/`+行` 配对,按字符剔除公共前后缀得"变化中段",中段加深底色(红/绿),整行底色保持淡色。超过 `DIFF_MAX_LINES=400` 行截断并提示。
+
+### 3.5 多仓库支持(子仓库发现与会话级选择)
+
+工作区目录本身不是仓库、但子目录里有仓库时(或需要在多个内嵌仓库间切换),面板顶部出现
+**仓库 chips**(基准仓库 + 发现的子仓库,当前项高亮),点选即切换。
+
+```mermaid
+flowchart TD
+    B["基准目录 baseCwd
+(workingDirectory.ensure)"]
+    OVR["repoOverride Map
+(agentId → 相对路径,仅内存)"]
+    CWD["生效目录 cwd()
+= base + override
+(所有 30 方法唯一收口)"]
+    DISC["discoverSubRepos
+find . -maxdepth 5 -name .git -print
+(剪枝 node_modules/dist/build/…)"]
+    B --> CWD
+    OVR --> CWD
+    B --> DISC
+    CWD --> GITRUN["git 命令在生效目录执行"]
+```
+
+- **发现**:`find` 下探 5 层找 `.git`(目录或 worktree 文件),剪枝 node_modules/dist/build/vendor/.venv/venv/target 重目录;命中 `.git` 的目录(含 `a/b/仓库` 多层形式)作为 chip 展示。
+- **选择**:`selectRepo(agent, root)` 校验(拒绝绝对路径与 `..`,且必须是仓库)后写入内存表;`cwd()` 对所有方法统一应用 override —— 单点收口,30 个方法零改动获得多仓库能力。
+- **清除**:点击基准仓库 chip(root='')即恢复。
+- 五种布局场景(仓库内+兄弟、非仓库+子仓库、已选子仓库、单仓库、非仓库无子仓库)均有渲染断言。
 
 ## 4. AI 提交信息(aiMessage)
 
