@@ -1,6 +1,6 @@
 {
-  "name": "@deepseek-ai/dsh-git-panel",
-  "version": "0.0.2",
+  "name": "@z-y-q/dsh-git-panel",
+  "version": "0.0.1",
   "description": "Zed-style Git panel for DeepSeek Harness web UI: working-tree status, staging, commit, branches, live refresh. Dual-face plugin (host Typert Remote + client sidebar tab), zero build.",
   "type": "module",
   "main": "lib/index.js",
@@ -16,7 +16,9 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "ARCHITECTURE.md",
+    "CHANGELOG.md"
   ],
   "dsh": {
     "bundle": {
@@ -42,17 +44,27 @@
     "dsh",
     "dsh-plugin",
     "git",
+    "git-panel",
+    "zed",
     "panel"
   ],
   "license": "MIT",
-  "private": true,
+  "author": "z-y-q",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/z-y-q/dsh-git-panel.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "dependencies": {
     "@deepseek-ai/cordis": "~4.0.5",
-    "@deepseek-ai/dsh-typert-protocol": "0.2.1-rc.3",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "@deepseek-ai/dsh-typert-protocol": "0.2.1-rc.3"
   },
   "devDependencies": {
-    "jsdom": "^30.1.3"
+    "jsdom": "^30.1.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }
