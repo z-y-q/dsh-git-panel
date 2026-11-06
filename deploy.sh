@@ -3,12 +3,12 @@
 # 为什么:① Node ESM 按路径缓存,link 直装会命中旧代缓存(代际混搭事故);
 #         ② 用工作区拷贝会踩到用户在面板里切换的分支(分支互踩事故)。
 # 纪律:先 commit,再 ./deploy.sh,然后 remove+install(或让会话执行)。
+# 规则:deploy/ 只保留最新一次部署 —— 旧目录全部清除,绝不与当前版本不一致。
 set -e
 cd "$(dirname "$0")"
 V=$(node -p "require('./package.json').version")
 DEST="deploy/$V"
-rm -rf "$DEST"
+rm -rf deploy
 mkdir -p "$DEST"
 git archive HEAD --format=tar | tar -x -C "$DEST"
-ln -sfn "$V" "$(dirname "$DEST")/current"   # profile 链接固定指向 deploy/current
 echo "$DEST"
