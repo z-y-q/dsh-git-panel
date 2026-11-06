@@ -10,4 +10,5 @@ DEST="deploy/$V"
 rm -rf "$DEST"
 mkdir -p "$DEST"
 git archive HEAD --format=tar | tar -x -C "$DEST"
+ln -sfn "$V" "$(dirname "$DEST")/current"   # profile 链接固定指向 deploy/current
 echo "$DEST"
